@@ -173,6 +173,8 @@ class SafeConstructor(BaseConstructor):
                 if isinstance(value_node, MappingNode):
                     self.flatten_mapping(value_node)
                     merge.extend(value_node.value)
+                    # XXX also merge tags
+                    node.tag = value_node.tag
                 elif isinstance(value_node, SequenceNode):
                     submerge = []
                     for subnode in value_node.value:
@@ -193,8 +195,13 @@ class SafeConstructor(BaseConstructor):
             elif key_node.tag == 'tag:yaml.org,2002:value':
                 key_node.tag = 'tag:yaml.org,2002:str'
                 index += 1
+            # XXX flatten all subnodes before the object gets constructed
+            elif value_node.tag == 'tag:yaml.org,2002:map':
+                self.flatten_mapping(value_node)
+                index += 1
             else:
                 index += 1
+
         if merge:
             node.value = merge + node.value
 
